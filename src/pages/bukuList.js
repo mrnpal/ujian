@@ -91,7 +91,7 @@ const BukuList = ({ setRefresh, setCurrentBuku }) => {
   );
 };
 
-// Simple inline styles
+// Simpel styling untuk komponen BukuList
 const listContainerStyle = {
   backgroundColor: '#f8f9fa',
   padding: '20px',

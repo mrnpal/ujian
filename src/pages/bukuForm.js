@@ -26,7 +26,6 @@ const BukuForm = ({ currentBuku, setRefresh, setCurrentBuku }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     // Validasi nilai numerik agar tidak kosong atau bukan angka
     if (
       isNaN(parseInt(kodeBuku)) ||
@@ -80,7 +79,7 @@ const BukuForm = ({ currentBuku, setRefresh, setCurrentBuku }) => {
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Kode Buku:</label>
           <input
-            type="number" // Ganti jadi number agar input lebih konsisten
+            type="number"
             value={kodeBuku}
             onChange={(e) => setKodeBuku(e.target.value)}
             required
@@ -104,7 +103,7 @@ const BukuForm = ({ currentBuku, setRefresh, setCurrentBuku }) => {
             value={jumlah}
             onChange={(e) => setJumlah(e.target.value)}
             required
-            min="1" // Validasi agar tidak bisa input negatif
+            min="1" 
             style={inputStyle}
           />
         </div>
