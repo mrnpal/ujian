@@ -2,23 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
 
-/**
- * Komponen BukuForm digunakan untuk menambah atau mengedit data buku.
- * Props:
- * - currentBuku: objek buku yang sedang diedit (jika ada)
- * - setRefresh: fungsi untuk me-refresh data di komponen induk
- * - setCurrentBuku: fungsi untuk mengatur buku yang sedang diedit
- */
 const BukuForm = ({ currentBuku, setRefresh, setCurrentBuku }) => {
   const [kodeBuku, setKodeBuku] = useState('');
   const [namaBuku, setNamaBuku] = useState('');
   const [jumlah, setJumlah] = useState('');
   const [harga, setHarga] = useState('');
 
-  /**
-   * useEffect ini akan mengisi form jika currentBuku ada (mode edit),
-   * atau mengosongkan form jika currentBuku null (mode tambah).
-   */
+  // useEffect untuk mengisi form ketika sedang dalam mode edit
   useEffect(() => {
     if (currentBuku) {
       setKodeBuku(currentBuku.kodeBuku);
@@ -26,6 +16,7 @@ const BukuForm = ({ currentBuku, setRefresh, setCurrentBuku }) => {
       setJumlah(currentBuku.jumlah);
       setHarga(currentBuku.harga);
     } else {
+      // Reset form jika tidak dalam mode edit
       setKodeBuku('');
       setNamaBuku('');
       setJumlah('');
@@ -33,33 +24,49 @@ const BukuForm = ({ currentBuku, setRefresh, setCurrentBuku }) => {
     }
   }, [currentBuku]);
 
-  /**
-   * Fungsi handleSubmit akan menangani proses submit form.
-   * Jika currentBuku ada, maka data buku akan diperbarui.
-   * Jika tidak, maka data buku baru akan ditambahkan ke database.
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const bukuData = { kodeBuku:parseInt(kodeBuku), namaBuku, jumlah: parseInt(jumlah), harga: parseInt(harga) };
+
+    // Validasi nilai numerik agar tidak kosong atau bukan angka
+    if (
+      isNaN(parseInt(kodeBuku)) ||
+      isNaN(parseInt(jumlah)) ||
+      isNaN(parseInt(harga))
+    ) {
+      alert('Kode Buku, Jumlah, dan Harga harus berupa angka.');
+      return;
+    }
+
+    const bukuData = {
+      kodeBuku: parseInt(kodeBuku),
+      namaBuku,
+      jumlah: parseInt(jumlah),
+      harga: parseInt(harga),
+    };
 
     try {
       if (currentBuku) {
-        // Update data buku yang sudah ada
+        // Mode Edit: Update dokumen di Firestore
         const bukuDocRef = doc(db, 'buku', currentBuku.id);
         await updateDoc(bukuDocRef, bukuData);
         alert('Data buku berhasil diperbarui!');
       } else {
-        // Tambah data buku baru
+        // Mode Tambah: Tambahkan dokumen baru ke koleksi 'buku'
         await addDoc(collection(db, 'buku'), bukuData);
         alert('Data buku berhasil ditambahkan!');
       }
-      
+
+      // Reset semua input form
       setKodeBuku('');
       setNamaBuku('');
       setJumlah('');
       setHarga('');
-      setRefresh(prev => !prev); // Memicu refresh pada komponen induk
-      setCurrentBuku(null); // Mengosongkan currentBuku setelah submit
+      
+      // Trigger refresh data pada komponen induk
+      setRefresh(prev => !prev);
+
+      // Reset currentBuku agar keluar dari mode edit
+      setCurrentBuku(null);
     } catch (error) {
       console.error("Error saving data: ", error);
       alert('Terjadi kesalahan saat menyimpan data.');
@@ -72,49 +79,59 @@ const BukuForm = ({ currentBuku, setRefresh, setCurrentBuku }) => {
       <form onSubmit={handleSubmit} style={formStyle}>
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Kode Buku:</label>
-          <input 
-            type="text" 
-            value={kodeBuku} 
-            onChange={(e) => setKodeBuku(e.target.value)} 
-            required 
+          <input
+            type="number" // Ganti jadi number agar input lebih konsisten
+            value={kodeBuku}
+            onChange={(e) => setKodeBuku(e.target.value)}
+            required
             style={inputStyle}
           />
         </div>
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Nama Buku:</label>
-          <input 
-            type="text" 
-            value={namaBuku} 
-            onChange={(e) => setNamaBuku(e.target.value)} 
-            required 
+          <input
+            type="text"
+            value={namaBuku}
+            onChange={(e) => setNamaBuku(e.target.value)}
+            required
             style={inputStyle}
           />
         </div>
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Jumlah:</label>
-          <input 
-            type="number" 
-            value={jumlah} 
-            onChange={(e) => setJumlah(e.target.value)} 
-            required 
+          <input
+            type="number"
+            value={jumlah}
+            onChange={(e) => setJumlah(e.target.value)}
+            required
+            min="1" // Validasi agar tidak bisa input negatif
             style={inputStyle}
           />
         </div>
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Harga:</label>
-          <input 
-            type="number" 
-            value={harga} 
-            onChange={(e) => setHarga(e.target.value)} 
-            required 
+          <input
+            type="number"
+            value={harga}
+            onChange={(e) => setHarga(e.target.value)}
+            required
+            min="0"
             style={inputStyle}
           />
         </div>
+
+        {/* Tombol submit: teks berubah tergantung mode */}
         <button type="submit" style={buttonStyle}>
           {currentBuku ? 'Perbarui Buku' : 'Tambah Buku'}
         </button>
+
+        {/* Tombol batal hanya muncul saat dalam mode edit */}
         {currentBuku && (
-          <button type="button" onClick={() => setCurrentBuku(null)} style={{ ...buttonStyle, backgroundColor: '#6c757d' }}>
+          <button
+            type="button"
+            onClick={() => setCurrentBuku(null)}
+            style={{ ...buttonStyle, backgroundColor: '#6c757d' }}
+          >
             Batal
           </button>
         )}
@@ -123,7 +140,7 @@ const BukuForm = ({ currentBuku, setRefresh, setCurrentBuku }) => {
   );
 };
 
-// Style inline sederhana untuk tampilan form
+// simpel styles untuk komponen BukuForm
 const formContainerStyle = {
   backgroundColor: '#f8f9fa',
   padding: '20px',

@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState } from 'react';
 import BukuForm from './pages/bukuForm';
 import BukuList from './pages/bukuList';
@@ -6,12 +5,12 @@ import './App.css';
 
 function App() {
   const [refresh, setRefresh] = useState(false);
-  const [currentBuku, setCurrentBuku] = useState(null); // State untuk buku yang diedit
+  // State untuk buku yang diedit
+  const [currentBuku, setCurrentBuku] = useState(null); 
 
   return (
     <div className="App" style={appStyle}>
-      <h1 style={headerStyle}>Aplikasi CRUD Buku 📚</h1>
-      {/* Pastikan setRefresh dan setCurrentBuku diteruskan */}
+      <h1 style={headerStyle}>Aplikasi Kasir Buku</h1>
       <BukuForm setRefresh={setRefresh} currentBuku={currentBuku} setCurrentBuku={setCurrentBuku} />
       <BukuList setRefresh={setRefresh} setCurrentBuku={setCurrentBuku} />
     </div>

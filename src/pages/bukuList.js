@@ -1,42 +1,54 @@
-// src/BukuList.js
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 
+// Komponen BukuList menerima props setRefresh dan setCurrentBuku
 const BukuList = ({ setRefresh, setCurrentBuku }) => {
+  // State untuk menyimpan daftar buku
   const [buku, setBuku] = useState([]);
 
+  // useEffect untuk mengambil data buku secara real-time dari Firestore
   useEffect(() => {
+    // Membuka koneksi snapshot ke koleksi 'buku'
     const unsub = onSnapshot(collection(db, 'buku'), (snapshot) => {
+      // Mengubah data snapshot menjadi array objek buku
       const bukuData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      setBuku(bukuData);
+      // Menyimpan data buku ke state
+      setBuku(bukuData); 
     }, (error) => {
+      // Menangani error jika gagal mengambil data
       console.error("Error fetching data: ", error);
     });
 
+    // Membersihkan listener saat komponen unmount
     return () => unsub();
-  }, [setRefresh]); // Re-run effect if setRefresh changes (though it shouldn't)
+  }, [setRefresh]); // Efek akan berjalan ulang jika setRefresh berubah
 
+  // Fungsi untuk menghapus buku berdasarkan id
   const handleDelete = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus buku ini?')) {
       try {
+        // Menghapus dokumen dari Firestore
         await deleteDoc(doc(db, 'buku', id));
         alert('Buku berhasil dihapus!');
-        setRefresh(prev => !prev); // Trigger refresh in parent
+        setRefresh(prev => !prev); // Memicu refresh data di parent
       } catch (error) {
+        // Menangani error saat penghapusan gagal
         console.error("Error deleting document: ", error);
         alert('Terjadi kesalahan saat menghapus buku.');
       }
     }
   };
 
+  // Fungsi untuk mengatur buku yang akan diedit
   const handleEdit = (bukuItem) => {
-    setCurrentBuku(bukuItem);
+    setCurrentBuku(bukuItem); // Mengirim data buku ke parent untuk diedit
   };
 
+  // Render daftar buku dalam bentuk tabel
   return (
     <div style={listContainerStyle}>
       <h2>Daftar Buku</h2>
@@ -61,9 +73,11 @@ const BukuList = ({ setRefresh, setCurrentBuku }) => {
                 <td style={tdStyle}>{bukuItem.jumlah}</td>
                 <td style={tdStyle}>{bukuItem.harga}</td>
                 <td style={tdStyle}>
+                  {/* Tombol edit memanggil handleEdit */}
                   <button onClick={() => handleEdit(bukuItem)} style={{ ...actionButtonStyle, backgroundColor: '#ffc107' }}>
                     Edit
                   </button>
+                  {/* Tombol hapus memanggil handleDelete */}
                   <button onClick={() => handleDelete(bukuItem.id)} style={{ ...actionButtonStyle, backgroundColor: '#dc3545' }}>
                     Hapus
                   </button>
